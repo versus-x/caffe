@@ -308,7 +308,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 147 (last added: recurrent_param)
+// LayerParameter next available layer-specific ID: 149 (last added: pelu_param)
 message LayerParameter {
   optional string name = 1; // the layer name
   optional string type = 2; // the layer type
@@ -361,6 +361,7 @@ message LayerParameter {
   // engine parameter for selecting the implementation.
   // The default for the engine is set by the ENGINE switch at compile-time.
   optional AccuracyParameter accuracy_param = 102;
+  optional ARFAParameter arfa_param = 147;
   optional ArgMaxParameter argmax_param = 103;
   optional BatchNormParameter batch_norm_param = 139;
   optional BiasParameter bias_param = 141;
@@ -388,6 +389,7 @@ message LayerParameter {
   optional MemoryDataParameter memory_data_param = 119;
   optional MVNParameter mvn_param = 120;
   optional ParameterParameter parameter_param = 145;
+  optional PELUParameter pelu_param = 148;
   optional PoolingParameter pooling_param = 121;
   optional PowerParameter power_param = 122;
   optional PReLUParameter prelu_param = 131;
@@ -1400,4 +1402,45 @@ message PReLUParameter {
   optional FillerParameter filler = 1;
   // Whether or not slope parameters are shared across channels.
   optional bool channel_shared = 2 [default = false];
+}
+message ARFAParameter {
+  // ARFA - Adaptive Rational Fraction Activation.
+
+  // F(x) = (a * x) / (b - x),    x <= 0
+  // F(x) = x/b,                  x > 0 && scaled == false && only_left == false
+  // F(x) = x,                    x > 0 && scaled == false && only_left == true
+  // F(x) = c * (x/b),            x > 0 && scaled == true && only_left == false
+  // F(x) = c * x,                x > 0 && scaled == true && only_left == true
+  // a - static parameter
+  // b - trainable parameter
+  // c - potentially trainable parameter
+
+  // Initial values
+  optional float a = 1 [default = 1.0];
+  optional float b = 2 [default = 1.0];
+  optional float c = 3 [default = 1.0];
+
+  // Thresholds for b (b should be larger than threshold_b_min and smaller than threshold_b_max)
+  optional float threshold_b_min = 4 [default = 0.01];
+  optional float threshold_b_max = 5 [default = 2147483647.0];
+
+  // Whether or not parameters are shared across channels:
+  optional bool channel_shared = 6 [default = false];
+  // See formulas above
+  optional bool scaled = 7 [default = false];
+  optional bool only_left = 8 [default = true];
+}
+message PELUParameter {
+  // Parametric Exponential Linear Unit (PELU) - http://arxiv.org/abs/1605.09332
+  // Initial value of a
+  optional float a = 1 [default = 1.0];
+  // Initial value of b
+  optional float b = 2 [default = 1.0];
+  // Thresholds
+  optional float threshold_a_min = 3 [default = 0.1];
+  optional float threshold_a_max = 4 [default = 2.0];
+  optional float threshold_b_min = 5 [default = 0.1];
+  optional float threshold_b_max = 6 [default = 2147483647.0];
+  // Whether or not parameters are shared across channels.
+  optional bool channel_shared = 7 [default = true];
 }
